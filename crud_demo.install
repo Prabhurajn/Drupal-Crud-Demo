@@ -1,0 +1,33 @@
+<?php
+function crud_demo_enable() {
+  if(db_table_exists('crud_demo') == FALSE) {
+     drupal_install_schema('crud_demo');
+  }
+}
+
+function crud_demo_disable() {
+     drupal_uninstall_schema('crud_demo');
+}
+
+/**
+* Implements hook_schema().  
+*/
+function crud_demo_schema(){
+  $schema['crud_demo'] = array(
+    'description' => 'TODO : Create table Materi',
+    'fields' => array(
+      'id_crud_demo' => array(
+         'type' =>'serial',
+         'descrption' => 'TODO : Please do not empty this field',
+         'not null' => TRUE,
+       ),
+       'car_name' => array(
+         'type' => 'varchar',
+         'description' => 'TODO : Materi Of Course',
+         'length' => 50,
+       ),
+    ),
+    'primary key' => array('id_crud_demo'), 
+  );
+  return $schema;
+}

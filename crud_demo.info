@@ -1,0 +1,5 @@
+name = crud_demo
+description = This module provides the built-in functionality of CRUD Operations
+package = crud_demo
+core = 7.x
+version = 7.x

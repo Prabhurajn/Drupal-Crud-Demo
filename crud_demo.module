@@ -1,0 +1,154 @@
+<?php
+/**
+* Implements hook_menu()
+*/
+function crud_demo_menu(){
+  $items['crud_demo'] = array(
+    'title' => 'CRUD Demo',
+      'Description' => 'All CRUD Operations',
+      'page callback' => 'index_crud',
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+  );
+
+  $items['crud_demo/add'] = array(
+    'title' => 'Add Data',
+      'Description' => 'Add car Details',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('add_data'),
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+  );
+
+  $items['crud_demo/edit'] = array(
+    'title' => 'Edit Data',
+      'Description' => 'Edit car Details',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('edit_data'),
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+  );
+
+  $items['crud_demo/delete'] = array(
+    'title' => 'Delete Data',
+      'Description' => 'Delete car Details',
+      'page callback' => 'delete_data',
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+function index_crud(){
+  $set = db_query("select * from {crud_demo}");
+
+  if($set->rowcount() == 0) {
+     $rows[] = array(
+        array('data' => t('-')),
+        array('data' => t('-')),
+        array('data' => t('-'))
+     );
+  } else {
+     foreach($set as $data) {
+        $rows[] = array(
+           array('data' => $data->car_name),
+           array('data' => l('Edit','crud_demo/Edit',array('query' => array('data' => $data->id_crud_demo)))),
+     array('data' => l('Delete','crud_demo/Delete',array('query' => array('data' => $data->id_crud_demo))))
+        );
+     }
+  }
+  
+  $header = array(t('Name Of Car'),t('Edit'),t('Delete'));
+  $output = theme('table', array('header' => $header, 'rows' => $rows));
+  $output .= l('Add Car','crud_demo/add');
+
+  return $output;
+
+}
+
+function add_data($form, &$form_state, $item = array()) {
+  $form['name'] = array(
+     '#type' => 'textfield',
+     '#title' => t("Car Name"),
+  );
+  
+  $form['submit'] = array(
+     '#type' => 'submit',
+     '#value' => t('Save'),
+     '#submit' => array('save_data'),
+  );
+ 
+  $form['cancel'] = array(
+     '#type' => 'button',
+     '#value' => t('Cancel'),
+     '#executes_submit_callback' => TRUE,
+     '#submit' => array('index_crud'),
+  );
+
+  return $form;
+}
+
+function edit_data($node, &$form_state, $item = array()){
+  $dec  = array("/","\\","\"","'");
+  $id   = str_replace($dec,"",$_GET['data']);
+  
+  $set  = db_query("select * from {crud_demo} where id_crud_demo = '{$id}'");
+  $data = array();
+  
+  foreach($set as $get_data) {
+    $data = (array)$get_data;
+  } 
+  
+  $form['id'] = array(
+    '#type' => 'hidden',
+    '#default_value' => $data['id_crud_demo'],
+  );
+  
+   $form['name'] = array(
+     '#type' => 'textfield',
+     '#default_value' => $data['car_name'],
+     '#title' => t("Car Name"),
+  );
+  
+  $form['submit'] = array(
+     '#type' => 'submit',
+     '#value' => t('Update'),
+     '#submit' => array('update_data'),
+  );
+ 
+  $form['cancel'] = array(
+     '#type' => 'button',
+     '#value' => t('Cancel'),
+     '#executes_submit_callback' => TRUE,
+     '#submit' => array('index_crud'),
+  );
+
+  return $form;
+}
+
+function delete_data(){
+  $dec = array("/","\\","\"","'");
+  $id  = str_replace($dec,"",$_GET['data']);
+
+  db_query("delete from {crud_demo} where id_crud_demo = '{$id}'");
+  drupal_set_message("Data Delete Successfully");
+  drupal_goto("crud_demo");
+
+}
+
+function save_data($form, $form_state) {
+  $name = $form_state['values']['name'];
+
+  db_query("insert into {crud_demo} (car_name) values('{$name}')");
+  drupal_set_message("One Record Added Successfully...");
+  drupal_goto("crud_demo");
+}
+
+function update_data($form, $form_state){
+  $id   = $form_state['values']['id'];
+  $name = $form_state['values']['name'];
+  
+  db_query("update crud_demo set car_name = '{$name}' where id_crud_demo = '{$id}'");
+  drupal_set_message("Record Updated Successfully");
+  drupal_goto("crud_demo");
+}
